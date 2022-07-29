@@ -28,7 +28,7 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 ;;; Optimized xor of N source vectors using AVX512
-;;; int xor_gen_avx512(int vects, int len, void **array)
+;;; int xor_gen_avx512_pipeline(int vects, int len, void **array)
 
 ;;; Generates xor parity vector from N (vects-1) sources in array of pointers
 ;;; (**array).  Last pointer is the dest.
@@ -36,7 +36,7 @@
 
 %include "reg_sizes.asm"
 
-%ifdef HAVE_AS_KNOWS_AVX512
+;%ifdef HAVE_AS_KNOWS_AVX512
 
 %ifidn __OUTPUT_FORMAT__, elf64
  %define arg0  rdi
@@ -47,33 +47,10 @@
  %define arg5  r9
  %define tmp   r11
  %define tmp3  arg4
- %define func(x) x: endbranch
+ %define func(x) x:
  %define return rax
  %define FUNC_SAVE
  %define FUNC_RESTORE
-
-%elifidn __OUTPUT_FORMAT__, win64
- %define arg0  rcx
- %define arg1  rdx
- %define arg2  r8
- %define arg3  r9
- %define tmp   r11
- %define tmp3  r10
- %define func(x) proc_frame x
- %define return rax
- %define stack_size  2*16 + 8 	;must be an odd multiple of 8
-
- %macro FUNC_SAVE 0
-	alloc_stack	stack_size
-	vmovdqu	[rsp + 0*16], xmm6
-	vmovdqu	[rsp + 1*16], xmm7
-	end_prolog
- %endmacro
- %macro FUNC_RESTORE 0
-	vmovdqu	xmm6, [rsp + 0*16]
-	vmovdqu	xmm7, [rsp + 1*316]
-	add	rsp, stack_size
- %endmacro
 
 %endif	;output formats
 
@@ -86,20 +63,19 @@
 %define pos tmp3
 %define PS 8
 
+;;; %define NO_NT_LDST
+;;; ;;; Use Non-temporal load/stor
+;;; %ifdef NO_NT_LDST
+;;;  %define XLDR vmovdqu8
+;;;  %define XSTR vmovdqu8
+;;; %else
+;;;  %define XLDR vmovntdqa
+;;;  %define XSTR vmovntdq
+;;; %endif
+
 ;;; fix aligned!
-;;;%define NO_NT_LDST
-;;;;;; Use Non-temporal load/stor
-;;;%ifdef NO_NT_LDST
-;;; %define XLDR vmovdqu8
-;;; %define XSTR vmovdqu8
-;;;%else
-;;; %define XLDR vmovntdqa
-;;; %define XSTR vmovntdq
-;;;%endif
-
-%define XLDR vmovdqa32
-%define XSTR vmovdqa32
-
+%define XLDR vmovdqu8
+%define XSTR vmovdqu8
 
 default rel
 [bits 64]
@@ -107,8 +83,8 @@ default rel
 section .text
 
 align 16
-mk_global  xor_gen_avx512, function
-func(xor_gen_avx512)
+global xor_gen_avx512_pipeline:ISAL_SYM_TYPE_FUNCTION
+func(xor_gen_avx512_pipeline)
 	FUNC_SAVE
 	sub	vec, 2			;Keep as offset to last source
 	jng	return_fail		;Must have at least 2 sources
@@ -138,8 +114,10 @@ next_vect:
 	jge	next_vect		;Loop for each source
 
 	mov	ptr, [arg2+PS+vec*PS]	;Address of parity vector
-	XSTR	[ptr+pos], zmm0		;Write parity xor vector
-	XSTR	[ptr+pos+64], zmm1
+	vmovdqu8	[ptr+pos], zmm0		;Write parity xor vector
+	clwb	[ptr+pos]
+	vmovdqu8	[ptr+pos+64], zmm1
+	clwb	[ptr+pos+64]
 	add	pos, 128
 	cmp	pos, len
 	jle	loop128
@@ -218,4 +196,4 @@ return_fail:
 
 endproc_frame
 
-%endif  ; ifdef HAVE_AS_KNOWS_AVX512
+;%endif  ; ifdef HAVE_AS_KNOWS_AVX512

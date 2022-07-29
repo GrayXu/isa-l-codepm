@@ -44,6 +44,7 @@
  extern gf_vect_dot_prod_avx512
  extern ec_encode_data_update_avx512
  extern gf_vect_mad_avx512
+ extern gf_vect_mad_avx512_clwb
 %endif
  extern gf_vect_mul_sse
  extern gf_vect_mul_avx

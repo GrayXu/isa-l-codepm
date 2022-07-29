@@ -298,6 +298,9 @@ void gf_vect_mad_base(int len, int vec, int vec_i,
 	}
 }
 
+/** 
+ * ec_encode_data_base(len, k, rows, g_tbls, data, coding);
+ */ 
 void ec_encode_data_base(int len, int srcs, int dests, unsigned char *v,
 			 unsigned char **src, unsigned char **dest)
 {
@@ -330,6 +333,27 @@ void ec_encode_data_update_base(int len, int k, int rows, int vec_i, unsigned ch
 		}
 	}
 }
+
+/**
+ * add a cache for dest (parity): read from dest_cache and write to dest & dest_cache
+ */
+void ec_encode_data_update_base_cache(int len, int k, int rows, int vec_i, unsigned char *v,
+				unsigned char *data, unsigned char **dest, unsigned char **dest_cache)
+{
+	int i, l;
+	unsigned char s;
+
+	for (l = 0; l < rows; l++) {
+		for (i = 0; i < len; i++) {
+			s = dest_cache[l][i];
+			s ^= gf_mul(data[i], v[vec_i * 32 + l * k * 32 + 1]);
+
+			dest[l][i] = s;
+			dest_cache[l][i] = s;
+		}
+	}
+}
+
 
 void gf_vect_mul_base(int len, unsigned char *a, unsigned char *src, unsigned char *dest)
 {

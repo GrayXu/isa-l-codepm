@@ -134,6 +134,7 @@
 ;;; %define XSTR movntdq
 ;;;%endif
 
+;;; fix aligned!
 %define XLDR movdqa
 %define XSTR movdqa
 
@@ -196,10 +197,12 @@ next_vect:
 	XSTR	[ptr+pos+(1*16)], xmm1
 	XSTR	[ptr+pos+(2*16)], xmm2
 	XSTR	[ptr+pos+(3*16)], xmm3
+	clwb	[ptr+pos]
 	XSTR	[ptr+pos+(4*16)], xmm4
 	XSTR	[ptr+pos+(5*16)], xmm5
 	XSTR	[ptr+pos+(6*16)], xmm6
 	XSTR	[ptr+pos+(7*16)], xmm7
+	clwb	[ptr+pos+(4*16)]
 	add	pos, 128
 	cmp	pos, len
 	jle	loop128

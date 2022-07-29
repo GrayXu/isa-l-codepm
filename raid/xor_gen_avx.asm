@@ -85,14 +85,16 @@
 %define PS 8
 
 ;;; Use Non-temporal load/stor
-%ifdef NO_NT_LDST
- %define XLDR vmovdqa
- %define XSTR vmovdqa
-%else
- %define XLDR vmovdqa
- %define XSTR vmovntdq
-%endif
+;;;%ifdef NO_NT_LDST
+;;; %define XLDR vmovdqa
+;;; %define XSTR vmovdqa
+;;;%else
+;;; %define XLDR vmovdqa
+;;; %define XSTR vmovntdq
+;;;%endif
 
+%define XLDR vmovdqa
+%define XSTR vmovdqa
 
 default rel
 [bits 64]

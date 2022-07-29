@@ -28,6 +28,12 @@
 **********************************************************************/
 #include <limits.h>
 #include "erasure_code.h"
+#include "assert.h"
+#include "x86intrin.h"
+
+#define ISAL_DISABLE_ASSERT 1
+
+#define HAVE_AS_KNOWS_AVX512 1
 
 #if __x86_64__  || __i386__ || _M_X64 || _M_IX86
 void ec_encode_data_sse(int len, int k, int rows, unsigned char *g_tbls, unsigned char **data,
@@ -64,6 +70,16 @@ void ec_encode_data_sse(int len, int k, int rows, unsigned char *g_tbls, unsigne
 	case 0:
 		break;
 	}
+
+}
+
+/**
+ * pls ensure rows==1
+*/
+void ec_encode_data_sse_clwb(int len, int k, int rows, unsigned char *g_tbls, unsigned char **data,
+			unsigned char **coding)
+{
+	gf_vect_dot_prod_sse_clwb(len, k, g_tbls, data, *coding);
 
 }
 
@@ -144,6 +160,8 @@ void ec_encode_data_avx2(int len, int k, int rows, unsigned char *g_tbls, unsign
 
 extern int gf_vect_dot_prod_avx512(int len, int k, unsigned char *g_tbls, unsigned char **data,
 				   unsigned char *dest);
+extern int gf_vect_dot_prod_avx512_clwb(int len, int k, unsigned char *g_tbls, unsigned char **data,
+				   unsigned char *dest);
 extern int gf_2vect_dot_prod_avx512(int len, int k, unsigned char *g_tbls,
 				    unsigned char **data, unsigned char **coding);
 extern int gf_3vect_dot_prod_avx512(int len, int k, unsigned char *g_tbls,
@@ -156,7 +174,11 @@ extern int gf_6vect_dot_prod_avx512(int len, int k, unsigned char *g_tbls,
 				    unsigned char **data, unsigned char **coding);
 extern void gf_vect_mad_avx512(int len, int vec, int vec_i, unsigned char *gftbls,
 			       unsigned char *src, unsigned char *dest);
+extern void gf_vect_mad_avx512_clwb(int len, int vec, int vec_i, unsigned char *gftbls,
+			       unsigned char *src, unsigned char *dest);
 extern void gf_2vect_mad_avx512(int len, int vec, int vec_i, unsigned char *gftbls,
+				unsigned char *src, unsigned char **dest);
+extern void gf_2vect_mad_avx512_clwb(int len, int vec, int vec_i, unsigned char *gftbls,
 				unsigned char *src, unsigned char **dest);
 extern void gf_3vect_mad_avx512(int len, int vec, int vec_i, unsigned char *gftbls,
 				unsigned char *src, unsigned char **dest);
@@ -166,6 +188,26 @@ extern void gf_5vect_mad_avx512(int len, int vec, int vec_i, unsigned char *gftb
 				unsigned char *src, unsigned char **dest);
 extern void gf_6vect_mad_avx512(int len, int vec, int vec_i, unsigned char *gftbls,
 				unsigned char *src, unsigned char **dest);
+
+// warning: ensure gftbls is modded
+extern void gf_2vect_mad_avx512_clwb_aio(int len, int k, unsigned char *new_src, unsigned char *gftbls_mod,
+				unsigned char *src, unsigned char **dest);
+extern void gf_2vect_mad_avx512_aio(int len, int k, unsigned char *new_src, unsigned char *gftbls,
+				unsigned char *src, unsigned char **dest);
+extern void gf_2vect_mad_sse_aio(int len, int k, unsigned char *new_src, unsigned char *gftbls,
+				unsigned char *src, unsigned char **dest);
+extern void gf_2vect_mad_sse_clwb_aio(int len, int k, unsigned char *new_src, unsigned char *gftbls,
+				unsigned char *src, unsigned char **dest);
+
+extern void gf_vect_mad_avx512_clwb_aio(int len, unsigned char *new_src, int vec_i, unsigned char *gftbls,
+			       unsigned char *src, unsigned char *dest);
+extern void gf_vect_mad_avx512_aio(int len, unsigned char *new_src, int vec_i, unsigned char *gftbls,
+			       unsigned char *src, unsigned char *dest);
+
+extern void gf_vect_mad_sse_aio(int len, unsigned char *new_src, int vec_i, unsigned char *gftbls,
+			       unsigned char *src, unsigned char *dest);
+extern void gf_vect_mad_sse_clwb_aio(int len, unsigned char *new_src, int vec_i, unsigned char *gftbls,
+			       unsigned char *src, unsigned char *dest);
 
 void ec_encode_data_avx512(int len, int k, int rows, unsigned char *g_tbls,
 			   unsigned char **data, unsigned char **coding)
@@ -203,6 +245,15 @@ void ec_encode_data_avx512(int len, int k, int rows, unsigned char *g_tbls,
 	}
 }
 
+void ec_encode_data_avx512_clwb(int len, int k, int rows, unsigned char *g_tbls, unsigned char **data,
+			 unsigned char **coding)
+{
+#ifndef ISAL_DISABLE_ASSERT
+	assert(rows==1);
+#endif
+	gf_vect_dot_prod_avx512_clwb(len, k, g_tbls, data, *coding);
+}
+
 void ec_encode_data_update_avx512(int len, int k, int rows, int vec_i, unsigned char *g_tbls,
 				  unsigned char *data, unsigned char **coding)
 {
@@ -234,6 +285,107 @@ void ec_encode_data_update_avx512(int len, int k, int rows, int vec_i, unsigned 
 		gf_vect_mad_avx512(len, k, vec_i, g_tbls, data, *coding);
 		break;
 	case 0:
+		break;
+	}
+}
+
+/**
+ * ec_encode_data_update with clwb for each parity write
+*/
+void ec_encode_data_update_avx512_clwb(int len, int k, int rows, int vec_i, unsigned char *g_tbls,
+				  unsigned char *data, unsigned char **coding)
+{
+#ifndef ISAL_DISABLE_ASSERT
+    assert(rows <= 2);
+#endif
+	switch (rows) {
+	case 2:
+		gf_2vect_mad_avx512_clwb(len, k, vec_i, g_tbls, data, coding);
+		break;
+	case 1:
+		gf_vect_mad_avx512_clwb(len, k, vec_i, g_tbls, data, *coding);
+		break;
+	}
+}
+void ec_encode_data_update_sse_clwb(int len, int k, int rows, int vec_i, unsigned char *g_tbls,
+				  unsigned char *data, unsigned char **coding)
+{
+#ifndef ISAL_DISABLE_ASSERT
+	assert(rows == 2);
+#endif
+	switch (rows) {
+	case 2:
+		gf_2vect_mad_sse_clwb(len, k, vec_i, g_tbls, data, coding);
+		break;
+	case 1:
+		gf_vect_mad_sse_clwb(len, k, vec_i, g_tbls, data, *coding);
+		break;
+	}
+}
+
+void ec_encode_data_update_avx512_clwb_aio(int len, int k, int rows, int vec_i, unsigned char *g_tbls,
+				  unsigned char *data, unsigned char **coding, unsigned char * new_data) 
+{
+#ifndef ISAL_DISABLE_ASSERT
+	assert(rows <= 2);
+#endif
+	switch (rows) {
+	case 2:
+		g_tbls += vec_i << 5;
+		gf_2vect_mad_avx512_clwb_aio(len, k, new_data, g_tbls, data, coding);
+		break;
+	case 1:
+		gf_vect_mad_avx512_clwb_aio(len, new_data, vec_i, g_tbls, data, *coding);
+		break;
+	}
+}
+void ec_encode_data_update_sse_clwb_aio(int len, int k, int rows, int vec_i, unsigned char *g_tbls,
+				  unsigned char *data, unsigned char **coding, unsigned char * new_data) 
+{
+#ifndef ISAL_DISABLE_ASSERT
+	assert(rows == 2);
+#endif
+	switch (rows) {
+	case 2:
+		g_tbls += vec_i << 5;
+		gf_2vect_mad_sse_clwb_aio(len, k, new_data, g_tbls, data, coding);
+		break;
+	case 1:
+		gf_vect_mad_sse_clwb_aio(len, new_data, vec_i, g_tbls, data, *coding);
+		break;
+	}
+}
+
+void ec_encode_data_update_avx512_aio(int len, int k, int rows, int vec_i, unsigned char *g_tbls,
+				  unsigned char *data, unsigned char **coding, unsigned char * new_data) 
+{
+#ifndef ISAL_DISABLE_ASSERT
+	assert(rows <= 2);
+#endif
+	switch (rows) {
+	case 2:
+		g_tbls += vec_i << 5;
+		gf_2vect_mad_avx512_aio(len, k, new_data, g_tbls, data, coding);
+		break;
+	case 1:
+		gf_vect_mad_avx512_aio(len, new_data, vec_i, g_tbls, data, *coding);
+		break;
+	}
+}
+
+void ec_encode_data_update_sse_aio(int len, int k, int rows, int vec_i, unsigned char *g_tbls,
+				  unsigned char *data, unsigned char **coding, unsigned char * new_data) 
+{
+#ifndef ISAL_DISABLE_ASSERT
+	assert(rows == 2);
+#endif
+	switch (rows) {
+	case 2:
+		g_tbls += vec_i << 5;
+		gf_2vect_mad_sse_aio(len, k, new_data, g_tbls, data, coding);
+		break;
+	case 1:
+		gf_vect_mad_sse_aio(len, new_data, vec_i, g_tbls, data, *coding);
 		break;
 	}
 }

@@ -49,6 +49,7 @@ objs = \
 	bin\gf_vect_mul_sse.obj \
 	bin\gf_vect_mul_avx.obj \
 	bin\gf_vect_dot_prod_sse.obj \
+	bin\gf_vect_dot_prod_sse_clwb.obj \
 	bin\gf_vect_dot_prod_avx.obj \
 	bin\gf_vect_dot_prod_avx2.obj \
 	bin\gf_2vect_dot_prod_sse.obj \
@@ -67,7 +68,13 @@ objs = \
 	bin\gf_5vect_dot_prod_avx2.obj \
 	bin\gf_6vect_dot_prod_avx2.obj \
 	bin\gf_vect_mad_sse.obj \
+	bin\gf_vect_mad_sse_clwb.obj \
+	bin\gf_vect_mad_sse_clwb_aio.obj \
+	bin\gf_vect_mad_sse_aio.obj \
 	bin\gf_2vect_mad_sse.obj \
+	bin\gf_2vect_mad_sse_clwb.obj \
+	bin\gf_2vect_mad_sse_aio.obj \
+	bin\gf_2vect_mad_sse_clwb_aio.obj \
 	bin\gf_3vect_mad_sse.obj \
 	bin\gf_4vect_mad_sse.obj \
 	bin\gf_5vect_mad_sse.obj \
@@ -86,6 +93,7 @@ objs = \
 	bin\gf_6vect_mad_avx2.obj \
 	bin\ec_multibinary.obj \
 	bin\gf_vect_dot_prod_avx512.obj \
+	bin\gf_vect_dot_prod_avx512_clwb.obj \
 	bin\gf_2vect_dot_prod_avx512.obj \
 	bin\gf_3vect_dot_prod_avx512.obj \
 	bin\gf_4vect_dot_prod_avx512.obj \
@@ -97,6 +105,12 @@ objs = \
 	bin\gf_4vect_mad_avx512.obj \
 	bin\gf_5vect_mad_avx512.obj \
 	bin\gf_6vect_mad_avx512.obj \
+	bin\gf_vect_mad_avx512_clwb.obj \
+	bin\gf_vect_mad_avx512_clwb_aio.obj \
+	bin\gf_vect_mad_avx512_aio.obj \
+	bin\gf_2vect_mad_avx512_clwb.obj \
+	bin\gf_2vect_mad_avx512_clwb_aio.obj \
+	bin\gf_2vect_mad_avx512_aio.obj \
 	bin\xor_gen_sse.obj \
 	bin\pq_gen_sse.obj \
 	bin\xor_check_sse.obj \

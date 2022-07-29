@@ -137,6 +137,7 @@ int pq_check(int vects, int len, void **array);
  */
 
 int xor_gen_sse(int vects, int len, void **array);
+int xor_gen_sse_clwb(int vects, int len, void **array);
 
 
 /**
@@ -153,6 +154,7 @@ int xor_gen_sse(int vects, int len, void **array);
  */
 
 int xor_gen_avx(int vects, int len, void **array);
+int xor_gen_avx_clwb(int vects, int len, void **array);
 
 
 /**

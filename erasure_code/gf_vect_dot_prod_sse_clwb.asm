@@ -28,7 +28,7 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 ;;;
-;;; gf_vect_dot_prod_sse(len, vec, *g_tbls, **buffs, *dest);
+;;; gf_vect_dot_prod_sse_clwb(len, vec, *g_tbls, **buffs, *dest);
 ;;;
 
 %include "reg_sizes.asm"
@@ -43,44 +43,17 @@
  %define tmp   r11
  %define tmp2  r10
  %define tmp3  r9
+ %define tmp4  r12  ; must be saved and restored
  %define return rax
  %macro  SLDR 2
  %endmacro
  %define SSTR SLDR
  %define PS 8
  %define func(x) x: endbranch
- %define FUNC_SAVE
- %define FUNC_RESTORE
-%endif
-
-%ifidn __OUTPUT_FORMAT__, win64
- %define arg0   rcx
- %define arg1   rdx
- %define arg2   r8
- %define arg3   r9
-
- %define arg4   r12 		; must be saved and loaded
- %define tmp    r11
- %define tmp2   r10
- %define tmp3   rdi 		; must be saved and loaded
- %define return rax
- %macro  SLDR 2
- %endmacro
- %define SSTR SLDR
- %define PS 8
- %define frame_size 2*8
- %define arg(x)      [rsp + frame_size + PS + PS*x]
-
- %define func(x) proc_frame x
  %macro FUNC_SAVE 0
-	rex_push_reg	r12
-	push_reg	rdi
-	end_prolog
-	mov	arg4, arg(4)
+	push	r12
  %endmacro
-
  %macro FUNC_RESTORE 0
-	pop	rdi
 	pop	r12
  %endmacro
 %endif
@@ -197,8 +170,8 @@ section .text
 %define xp     xmm2
 
 align 16
-mk_global gf_vect_dot_prod_sse, function
-func(gf_vect_dot_prod_sse)
+mk_global gf_vect_dot_prod_sse_clwb, function
+func(gf_vect_dot_prod_sse_clwb)
 	FUNC_SAVE
 	SLDR 	len, len_m
 	sub	len, 16
@@ -240,6 +213,18 @@ func(gf_vect_dot_prod_sse)
 	XSTR	[dest+pos], xp
 
 	add	pos, 16			;Loop on 16 bytes at a time
+
+;;;;;;;;;;;;;;;;;;;clwb new parity;;;;;;;;;;;;;;;;;;;
+	mov	tmp4, pos
+	test	tmp4, 63
+	jz	.clwb_haha
+	jmp .continue
+	
+.clwb_haha:
+	clwb	[dest+pos-64]
+
+.continue:
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 	SLDR 	len, len_m
 	cmp	pos, len
 	jle	.loop16
@@ -271,4 +256,4 @@ align 16
 mask0f:	dq 0x0f0f0f0f0f0f0f0f, 0x0f0f0f0f0f0f0f0f
 
 ;;;       func                 core, ver, snum
-slversion gf_vect_dot_prod_sse, 00,  05,  0060
+slversion gf_vect_dot_prod_sse_clwb, 00,  05,  0060

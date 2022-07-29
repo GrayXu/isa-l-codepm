@@ -39,6 +39,7 @@ lsrc_x86_64  += \
 		erasure_code/gf_vect_mul_sse.asm \
 		erasure_code/gf_vect_mul_avx.asm \
 		erasure_code/gf_vect_dot_prod_sse.asm  \
+		erasure_code/gf_vect_dot_prod_sse_clwb.asm  \
 		erasure_code/gf_vect_dot_prod_avx.asm \
 		erasure_code/gf_vect_dot_prod_avx2.asm \
 		erasure_code/gf_2vect_dot_prod_sse.asm \
@@ -57,7 +58,13 @@ lsrc_x86_64  += \
 		erasure_code/gf_5vect_dot_prod_avx2.asm \
 		erasure_code/gf_6vect_dot_prod_avx2.asm \
 		erasure_code/gf_vect_mad_sse.asm \
+		erasure_code/gf_vect_mad_sse_clwb.asm \
+		erasure_code/gf_vect_mad_sse_clwb_aio.asm \
+		erasure_code/gf_vect_mad_sse_aio.asm \
 		erasure_code/gf_2vect_mad_sse.asm \
+		erasure_code/gf_2vect_mad_sse_clwb.asm \
+		erasure_code/gf_2vect_mad_sse_aio.asm \
+		erasure_code/gf_2vect_mad_sse_clwb_aio.asm \
 		erasure_code/gf_3vect_mad_sse.asm \
 		erasure_code/gf_4vect_mad_sse.asm \
 		erasure_code/gf_5vect_mad_sse.asm \
@@ -79,6 +86,7 @@ lsrc_x86_64  += \
 #if HAVE_AVX512
 lsrc_x86_64  += \
 		erasure_code/gf_vect_dot_prod_avx512.asm \
+		erasure_code/gf_vect_dot_prod_avx512_clwb.asm \
 		erasure_code/gf_2vect_dot_prod_avx512.asm \
 		erasure_code/gf_3vect_dot_prod_avx512.asm \
 		erasure_code/gf_4vect_dot_prod_avx512.asm \
@@ -89,7 +97,13 @@ lsrc_x86_64  += \
 		erasure_code/gf_3vect_mad_avx512.asm \
 		erasure_code/gf_4vect_mad_avx512.asm \
 		erasure_code/gf_5vect_mad_avx512.asm \
-		erasure_code/gf_6vect_mad_avx512.asm
+		erasure_code/gf_6vect_mad_avx512.asm \
+		erasure_code/gf_vect_mad_avx512_clwb.asm \
+		erasure_code/gf_vect_mad_avx512_clwb_aio.asm \
+		erasure_code/gf_vect_mad_avx512_aio.asm \
+		erasure_code/gf_2vect_mad_avx512_clwb.asm \
+		erasure_code/gf_2vect_mad_avx512_clwb_aio.asm \
+		erasure_code/gf_2vect_mad_avx512_aio.asm
 
 lsrc_x86_32  += \
 		erasure_code/ec_highlevel_func.c \
@@ -99,6 +113,7 @@ lsrc_x86_32  += \
 		erasure_code/gf_3vect_dot_prod_avx.asm \
 		erasure_code/gf_4vect_dot_prod_avx.asm \
 		erasure_code/gf_vect_dot_prod_sse.asm \
+		erasure_code/gf_vect_dot_prod_sse_clwb.asm \
 		erasure_code/gf_2vect_dot_prod_sse.asm \
 		erasure_code/gf_3vect_dot_prod_sse.asm \
 		erasure_code/gf_4vect_dot_prod_sse.asm \

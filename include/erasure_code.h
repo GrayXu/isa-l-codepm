@@ -131,6 +131,21 @@ void ec_encode_data_base(int len, int srcs, int dests, unsigned char *v, unsigne
 void ec_encode_data_update(int len, int k, int rows, int vec_i, unsigned char *g_tbls,
 			   unsigned char *data, unsigned char **coding);
 
+
+/**
+ * 在NASM内all in one地完成delta update.
+ * pm & clwb are different XSTR versions
+*/
+void ec_encode_data_update_sse_aio(int len, int k, int rows, int vec_i, unsigned char *g_tbls,
+				  unsigned char *data, unsigned char **coding, unsigned char *new_data);
+void ec_encode_data_update_sse_clwb_aio(int len, int k, int rows, int vec_i, unsigned char *g_tbls,
+				  unsigned char *data, unsigned char **coding, unsigned char *new_data);
+				  
+void ec_encode_data_update_avx512_clwb_aio(int len, int k, int rows, int vec_i, unsigned char *g_tbls,
+				  unsigned char *data, unsigned char **coding, unsigned char *new_data);
+void ec_encode_data_update_avx512_aio(int len, int k, int rows, int vec_i, unsigned char *g_tbls,
+				  unsigned char *data, unsigned char **coding, unsigned char *new_data);
+				  
 /**
  * @brief Generate update for encode or decode of erasure codes from single source.
  *
@@ -233,6 +248,8 @@ void gf_vect_mad_base(int len, int vec, int vec_i, unsigned char *v, unsigned ch
  */
 void ec_encode_data_sse(int len, int k, int rows, unsigned char *gftbls, unsigned char **data,
 			unsigned char **coding);
+void ec_encode_data_sse_clwb(int len, int k, int rows, unsigned char *gftbls, unsigned char **data,
+			unsigned char **coding);
 
 /**
  * @brief Generate or decode erasure codes on blocks of data.
@@ -253,6 +270,19 @@ void ec_encode_data_avx2(int len, int k, int rows, unsigned char *gftbls, unsign
 			 unsigned char **coding);
 
 /**
+ * use avx512 to encode
+ */ 
+void ec_encode_data_avx512(int len, int k, int rows, unsigned char *gftbls, unsigned char **data,
+			 unsigned char **coding);
+
+/**
+ * use clwb after each store
+*/
+void ec_encode_data_avx512_clwb(int len, int k, int rows, unsigned char *gftbls, unsigned char **data,
+			 unsigned char **coding);
+
+
+/**
  * @brief Generate update for encode or decode of erasure codes from single source.
  *
  * Arch specific version of ec_encode_data_update() with same parameters.
@@ -260,6 +290,8 @@ void ec_encode_data_avx2(int len, int k, int rows, unsigned char *gftbls, unsign
  */
 
 void ec_encode_data_update_sse(int len, int k, int rows, int vec_i, unsigned char *g_tbls,
+			       unsigned char *data, unsigned char **coding);
+void ec_encode_data_update_sse_clwb(int len, int k, int rows, int vec_i, unsigned char *g_tbls,
 			       unsigned char *data, unsigned char **coding);
 
 /**
@@ -283,6 +315,18 @@ void ec_encode_data_update_avx2(int len, int k, int rows, int vec_i, unsigned ch
 				unsigned char *data, unsigned char **coding);
 
 /**
+ * use avx512 to update
+ */
+void ec_encode_data_update_avx512(int len, int k, int rows, int vec_i, unsigned char *g_tbls,
+				unsigned char *data, unsigned char **coding);
+
+/**
+ * add a clwb after each avx512 store
+*/
+void ec_encode_data_update_avx512_clwb(int len, int k, int rows, int vec_i, unsigned char *g_tbls,
+				  unsigned char *data, unsigned char **coding);
+				  
+/**
  * @brief GF(2^8) vector dot product.
  *
  * Does a GF(2^8) dot product across each byte of the input array and a constant
@@ -301,6 +345,8 @@ void ec_encode_data_update_avx2(int len, int k, int rows, int vec_i, unsigned ch
  */
 
 void gf_vect_dot_prod_sse(int len, int vlen, unsigned char *gftbls,
+			unsigned char **src, unsigned char *dest);
+void gf_vect_dot_prod_sse_clwb(int len, int vlen, unsigned char *gftbls,
 			unsigned char **src, unsigned char *dest);
 
 /**
@@ -410,6 +456,10 @@ void gf_2vect_dot_prod_avx(int len, int vlen, unsigned char *gftbls,
 
 void gf_2vect_dot_prod_avx2(int len, int vlen, unsigned char *gftbls,
 			unsigned char **src, unsigned char **dest);
+
+int gf_2vect_dot_prod_avx512(int len, int vlen, unsigned char *gftbls,
+			unsigned char **src, unsigned char **dest);
+
 
 /**
  * @brief GF(2^8) vector dot product with three outputs.
@@ -684,6 +734,8 @@ void gf_6vect_dot_prod_avx2(int len, int vlen, unsigned char *gftbls,
 
 void gf_vect_mad_sse(int len, int vec, int vec_i, unsigned char *gftbls, unsigned char *src,
 		     unsigned char *dest);
+void gf_vect_mad_sse_clwb(int len, int vec, int vec_i, unsigned char *gftbls, unsigned char *src,
+		     unsigned char *dest);
 /**
  * @brief GF(2^8) vector multiply accumulate, arch specific version.
  *
@@ -727,6 +779,8 @@ void gf_vect_mad_avx2(int len, int vec, int vec_i, unsigned char *gftbls, unsign
  */
 
 void gf_2vect_mad_sse(int len, int vec, int vec_i, unsigned char *gftbls, unsigned char *src,
+		      unsigned char **dest);
+void gf_2vect_mad_sse_clwb(int len, int vec, int vec_i, unsigned char *gftbls, unsigned char *src,
 		      unsigned char **dest);
 
 /**

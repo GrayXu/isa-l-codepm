@@ -6,6 +6,7 @@
 *.dll
 *.exp
 *.lib
+*.s
 bin
 
 # Autobuild
@@ -26,3 +27,5 @@ isa-l.h
 /libisal.la
 libisal.pc
 programs/igzip
+
+.vscode/*
